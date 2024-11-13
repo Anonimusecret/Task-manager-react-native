@@ -189,11 +189,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     width: '100%',
     alignItems: 'center ',
-    flex: 1
+    //flex: 1
     },
     text: {
-        width: 150,
-        flex: 1
+        width: 70,
+        //flex: 1
     },
     input: {
     marginTop: 10,
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     outlineColor: "black",
     outlineStyle: "solid",
     outlineWidth: 2,
-    flex: 3,
+    //flex: 3,
     //alignSelf: 'center',
     },
     delButton: {
@@ -218,10 +218,10 @@ const styles = StyleSheet.create({
     },
 
     submitButton: {
-        width: 40,
+        width: 60,
         height: 40,
         alignSelf: 'center',
-        flex: 1,
+        //flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 2,
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     },
     inputRow: {
         alignItems: 'center',
-        flex: 1 / 4,
+        //flex: 1 / 4,
         flexDirection: "row",
         //width: 500,
     },
@@ -253,11 +253,13 @@ const styles = StyleSheet.create({
     },
     leftContainer:{
         alignItems: 'left',
-        flex: 4
+        flex: 4,
+        //width: '80%'
     },
     main: {
-        flex: 1,
-        flexDirection: 'column'
+        //flex: 1,
+        height: '100%',
+        flexDirection: 'column',
         //alignItems: 'flex-start'
     },
     submitButtonText: {
