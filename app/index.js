@@ -15,22 +15,44 @@ export default function MainScreen(){
     const [id, setId] = useState(null)
 
     function addTask(){
+        console.log('addTask')
+        console.log('tasks ' + tasks)
 
         let newTask = {}
         
-        newTask.id = 
-        id++
-        newTask.name = 'textTest'
-        newTask.description = 'textDedcriptionTest'
+        newTask.id = id
+        setId(+newTask.id+1)
+        storeData('ID', id)
 
-        let storeNewTask = [[newTask.id][newTask]]
-        
-        storeData(storeNewTask[0][0], newTask)
+        newTask.name = taskName
+        newTask.description = taskDescription
+
+        console.log(' 11 ' + newTask)
+        console.log(' 22 ' + JSON.stringify(newTask))
+
+        let storeNewTask = [[newTask.id, JSON.stringify(newTask)]]
+
+        console.log(storeNewTask)
+
+        storeData(storeNewTask[0][0].toString(), newTask)
         setTasks(...tasks, storeNewTask)
     }
 
-    function deleteTask(task){
-        alert(task.id)
+    function deleteTask(task, i){
+        
+
+        let nextTasks = tasks
+        console.log('tasks in delete ' + nextTasks)
+        let index = nextTasks.indexOf(task)
+
+        if (index < -1) { 
+            console.log('INDEX NOT FOUND')
+        }
+
+        nextTasks.splice(i, 1)
+        setTasks(nextTasks)
+        AsyncStorage.removeItem(task[0])
+
     }
 
     const storeData = async (key, value) => {
@@ -45,8 +67,11 @@ export default function MainScreen(){
     const getData = async (key) => {
         try {
             const jsonValue = await AsyncStorage.getItem(key);
-            console.log(jsonValue)
-            return jsonValue != null ? JSON.parse(jsonValue) : null;
+            let result
+            console.log(`${key} ` + jsonValue)
+            result = jsonValue != null ? JSON.parse(jsonValue) : null;
+            console.log(`result = ` + result)
+            return result
         } catch (e) {
             // error reading value
         }
@@ -55,12 +80,13 @@ export default function MainScreen(){
     function checkId(){
         let id = getData('ID')
 
-        if (id  == null){
+        if (isNaN(id)){
             storeData('ID', 0)
             setId(0)
         } else{
             setId(id)
         }
+        console.log('id ' + id)
     }
 
     useEffect(()=>{
@@ -71,7 +97,7 @@ export default function MainScreen(){
             let data = [];
             AsyncStorage.multiGet(keys, (err, stores) => {
                 //let data = [];
-                console.log('stores '+stores)
+                console.log('stores '+ stores)
 
                 setTasks(stores);
 
@@ -94,7 +120,7 @@ export default function MainScreen(){
     //let testData = getData();
     //setTasks(testData)
 
-    return( //TODO: Стилизовать
+    return(
         <View style={styles.main}>
             <TopPart 
                 addTask={addTask} 
@@ -169,45 +195,45 @@ export function BottomPart({tasks, deleteTask}){
 }
 
 export function TaskList({tasks, deleteTask}){
-    function printTasks(tasks){
-        for(elem of tasks){
-            return(
-                <TaskListElement key={task.id} task={task} deleteTask={deleteTask}/>
-            )
-        }
-    }
+
     return(
 
         
 
-        tasks.map((task)=>{
+        tasks.map((task, i)=>{
             return(
-                <TaskListElement key={task[0]} task={task} deleteTask={deleteTask}/>
+                <TaskListElement key={task[0]} item={task} deleteTask={deleteTask} i={i}/>
             )
         })
     )
 }
 
-export function TaskListElement({task, deleteTask}){
-    task = task[1]
-    return(
-        <View style={styles.container}>
+export function TaskListElement({item, deleteTask, i}){
+    if(item[0] == 'ID'){
+        return
+    } else{
+        console.log(item)
+        let task = JSON.parse(item[1])
+        return(
+            <View style={styles.container}>
 
-            <View style={styles.leftContainer}>
-                <Text style={styles.taskName} >
-                    {task.name}
-                </Text>
-                <Text style={styles.taskDecription}>
-                    {task.description}
-                </Text>
+                <View style={styles.leftContainer}>
+                    <Text style={styles.taskName} >
+                        {task.name}
+                    </Text>
+                    <Text style={styles.taskDecription}>
+                        {task.description}
+                    </Text>
+                </View>
+                
+                <Pressable style={styles.delButton} onPress={()=>{deleteTask(item, i)}}>
+                    <Text style={styles.delButtonText}>X</Text>
+                </Pressable>
+                
             </View>
-            
-            <Pressable style={styles.delButton} onPress={()=>{deleteTask(task)}}>
-                <Text style={styles.delButtonText}>X</Text>
-            </Pressable>
-            
-        </View>
-    )
+        )
+    }
+    
 }
 
 const styles = StyleSheet.create({
