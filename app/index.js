@@ -12,38 +12,39 @@ export default function MainScreen(){
     const [taskDescription, setTaskDescription] = useState('');
 
     const [tasks, setTasks] = useState([]) //TODO: Хранение в файле
-    
-    let id = 0
+    const [id, setId] = useState(null)
 
     function addTask(){
 
         let newTask = {}
         
-        newTask.id = 'test'
+        newTask.id = 
         id++
         newTask.name = 'textTest'
         newTask.description = 'textDedcriptionTest'
+
+        let storeNewTask = [[newTask.id][newTask]]
         
-        storeData(newTask)
-        setTasks([newTask])
+        storeData(storeNewTask[0][0], newTask)
+        setTasks(...tasks, storeNewTask)
     }
 
     function deleteTask(task){
         alert(task.id)
     }
 
-    const storeData = async (value) => {
+    const storeData = async (key, value) => {
         try {
             const jsonValue = JSON.stringify(value);
-            await AsyncStorage.setItem('test', jsonValue);
+            await AsyncStorage.setItem(key, jsonValue);
         } catch (e) {
             // saving error
         }
     };
     
-    const getData = async () => {
+    const getData = async (key) => {
         try {
-            const jsonValue = await AsyncStorage.getItem('test');
+            const jsonValue = await AsyncStorage.getItem(key);
             console.log(jsonValue)
             return jsonValue != null ? JSON.parse(jsonValue) : null;
         } catch (e) {
@@ -51,23 +52,40 @@ export default function MainScreen(){
         }
     };
 
+    function checkId(){
+        let id = getData('ID')
+
+        if (id  == null){
+            storeData('ID', 0)
+            setId(0)
+        } else{
+            setId(id)
+        }
+    }
+
     useEffect(()=>{
+        console.log('useEffect activated')
+        checkId()
+
         AsyncStorage.getAllKeys((err, keys) => {
             let data = [];
             AsyncStorage.multiGet(keys, (err, stores) => {
-                let data = [];
+                //let data = [];
+                console.log('stores '+stores)
+
+                setTasks(stores);
+
                 stores.map((result, i, store) => {
 
                 // get at each store's key/value so you can work with it
                 let key = store[i][0];
                 let value = store[i][1];
 
-                
                 data[key] = value
 
                 });
             });
-        setTasks(data)
+        //setTasks(data)
         });
         
     }, [])
@@ -151,17 +169,27 @@ export function BottomPart({tasks, deleteTask}){
 }
 
 export function TaskList({tasks, deleteTask}){
-    
-    return(
-        tasks.map((task)=>{
+    function printTasks(tasks){
+        for(elem of tasks){
             return(
                 <TaskListElement key={task.id} task={task} deleteTask={deleteTask}/>
             )
+        }
+    }
+    return(
+
+        
+
+        tasks.map((task)=>{
+            return(
+                <TaskListElement key={task[0]} task={task} deleteTask={deleteTask}/>
+            )
         })
     )
-} 
+}
 
 export function TaskListElement({task, deleteTask}){
+    task = task[1]
     return(
         <View style={styles.container}>
 
@@ -174,7 +202,7 @@ export function TaskListElement({task, deleteTask}){
                 </Text>
             </View>
             
-            <Pressable style={styles.delButton} onPress={deleteTask}>
+            <Pressable style={styles.delButton} onPress={()=>{deleteTask(task)}}>
                 <Text style={styles.delButtonText}>X</Text>
             </Pressable>
             
