@@ -11,47 +11,34 @@ export default function MainScreen(){
     const [taskName, setTaskName] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
 
-    const [tasks, setTasks] = useState([]) //TODO: Хранение в файле
-    const [id, setId] = useState(null)
+    const [tasks, setTasks] = useState([])
+    
 
-    function addTask(){
-        console.log('addTask')
-        console.log('tasks ' + tasks)
+    async function addTask(){
 
-        let newTask = {}
-        
-        newTask.id = id
-        setId(+newTask.id+1)
-        storeData('ID', id)
+        if(taskName.length > 0){
+            let newTask = {}
+            
+            newTask.id = await getData('ID')
+            newTask.name = taskName
+            newTask.description = taskDescription
 
-        newTask.name = taskName
-        newTask.description = taskDescription
+            setTaskName('')
+            setTaskDescription('')
+            await storeData(newTask.id.toString(), newTask)
 
-        console.log(' 11 ' + newTask)
-        console.log(' 22 ' + JSON.stringify(newTask))
+            let newId = +newTask.id + 1
+            await storeData('ID', newId)
 
-        let storeNewTask = [[newTask.id, JSON.stringify(newTask)]]
-
-        console.log(storeNewTask)
-
-        storeData(storeNewTask[0][0].toString(), newTask)
-        setTasks(...tasks, storeNewTask)
+            getAllTasks();
+        }
     }
+        
 
     function deleteTask(task, i){
-        
 
-        let nextTasks = tasks
-        console.log('tasks in delete ' + nextTasks)
-        let index = nextTasks.indexOf(task)
-
-        if (index < -1) { 
-            console.log('INDEX NOT FOUND')
-        }
-
-        nextTasks.splice(i, 1)
-        setTasks(nextTasks)
         AsyncStorage.removeItem(task[0])
+        getAllTasks();
 
     }
 
@@ -60,7 +47,7 @@ export default function MainScreen(){
             const jsonValue = JSON.stringify(value);
             await AsyncStorage.setItem(key, jsonValue);
         } catch (e) {
-            // saving error
+
         }
     };
     
@@ -68,57 +55,39 @@ export default function MainScreen(){
         try {
             const jsonValue = await AsyncStorage.getItem(key);
             let result
-            console.log(`${key} ` + jsonValue)
+
             result = jsonValue != null ? JSON.parse(jsonValue) : null;
-            console.log(`result = ` + result)
+
             return result
         } catch (e) {
-            // error reading value
+
         }
     };
 
-    function checkId(){
-        let id = getData('ID')
+    async function checkId(){
+        let id = await getData('ID')
 
         if (isNaN(id)){
-            storeData('ID', 0)
-            setId(0)
-        } else{
-            setId(id)
+            await storeData('ID', 0)
         }
-        console.log('id ' + id)
+    }
+
+    function getAllTasks(){
+
+        AsyncStorage.getAllKeys((err, keys) => {
+            AsyncStorage.multiGet(keys, (err, stores) => {
+                setTasks(stores);
+            });
+
+        });
     }
 
     useEffect(()=>{
-        console.log('useEffect activated')
+
         checkId()
+        getAllTasks()
 
-        AsyncStorage.getAllKeys((err, keys) => {
-            let data = [];
-            AsyncStorage.multiGet(keys, (err, stores) => {
-                //let data = [];
-                console.log('stores '+ stores)
-
-                setTasks(stores);
-
-                stores.map((result, i, store) => {
-
-                // get at each store's key/value so you can work with it
-                let key = store[i][0];
-                let value = store[i][1];
-
-                data[key] = value
-
-                });
-            });
-        //setTasks(data)
-        });
-        
     }, [])
-
-    //storeData({name: 'testTask', description: "testTaskDecripition", id: 500})
-    //let testData = getData();
-    //setTasks(testData)
 
     return(
         <View style={styles.main}>
@@ -148,7 +117,7 @@ export function TopPart({addTask, setTaskDescription, setTaskName, taskName, tas
                         <Text style={styles.text}>Имя</Text>
                         <TextInput 
                             value={taskName} 
-                            onChange={(e) => setTaskName(e.target.value)}
+                            onChange={(e) => setTaskName(e.nativeEvent.text)}
                             onSubmitEditing={()=>{inputRef.current.focus()}}
                             id='name' 
                             placeholder='Название' 
@@ -163,7 +132,7 @@ export function TopPart({addTask, setTaskDescription, setTaskName, taskName, tas
                         <TextInput 
                             ref={inputRef}
                             value={taskDescription} 
-                            onChange={(e) => setTaskDescription(e.target.value)}  
+                            onChange={(e) => setTaskDescription(e.nativeEvent.text)}  
                             id='decription' 
                             placeholder='Описание' 
                             style={styles.input}
@@ -212,7 +181,6 @@ export function TaskListElement({item, deleteTask, i}){
     if(item[0] == 'ID'){
         return
     } else{
-        console.log(item)
         let task = JSON.parse(item[1])
         return(
             <View style={styles.container}>
@@ -286,9 +254,10 @@ const styles = StyleSheet.create({
     },
     taskName: {
         fontSize: 20,
+        fontWeight: 700,
     },
     taskDecription: {
-        fontSize: 8,
+        fontSize: 12,
     },
     inputRow: {
         alignItems: 'center',
@@ -303,7 +272,7 @@ const styles = StyleSheet.create({
         //width: 500,
     },
     scroll: {
-        //flex: 4
+        //flexDirection: 'column-reverse'
     },
     leftContainer:{
         alignItems: 'left',
