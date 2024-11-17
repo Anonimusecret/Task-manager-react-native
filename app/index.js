@@ -15,10 +15,9 @@ export default function MainScreen(){
     
 
     async function addTask(){
-
+        
         if(taskName.length > 0){
             let newTask = {}
-            
             newTask.id = await getData('ID')
             newTask.name = taskName
             newTask.description = taskDescription
@@ -66,10 +65,11 @@ export default function MainScreen(){
 
     async function checkId(){
         let id = await getData('ID')
-
-        if (isNaN(id)){
+        if (isNaN(id) || id == null){
             await storeData('ID', 0)
+            getAllTasks()
         }
+        
     }
 
     function getAllTasks(){
@@ -85,7 +85,7 @@ export default function MainScreen(){
     useEffect(()=>{
 
         checkId()
-        getAllTasks()
+        
 
     }, [])
 
@@ -167,8 +167,6 @@ export function TaskList({tasks, deleteTask}){
 
     return(
 
-        
-
         tasks.map((task, i)=>{
             return(
                 <TaskListElement key={task[0]} item={task} deleteTask={deleteTask} i={i}/>
@@ -223,6 +221,9 @@ const styles = StyleSheet.create({
     outlineColor: "black",
     outlineStyle: "solid",
     outlineWidth: 2,
+    borderWidth: 1,
+    borderRadius: 10,
+    width: '70%'
     //flex: 3,
     //alignSelf: 'center',
     },
